@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nový Dech - Tvoje cesta ke svobodě</title>
+    <style>
+        /* --- CSS Variables & Reset --- */
+        :root {
+            --primary: #10b981;      /* Emerald Green - Healing/Success */
+            --primary-dark: #047857;
+            --bg-color: #f0fdf4;     /* Very light mint */
+            --card-bg: #ffffff;
+            --text-main: #1f2937;
+            --text-muted: #6b7280;
+            --danger: #ef4444;
+            --gold: #fbbf24;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --radius: 16px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* --- Utility Classes --- */
+        .hidden { display: none !important; }
+        .btn {
+            border: none;
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary { background-color: var(--primary); color: white; width: 100%; }
+        .btn-danger { background-color: transparent; color: var(--text-muted); border: 1px solid #e5e7eb; font-size: 0.9rem; margin-top: 20px; }
+        .btn-danger:hover { color: var(--danger); border-color: var(--danger); }
+
+        /* --- Setup Screen --- */
+        .setup-card {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.9rem; }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        input:focus { outline: 2px solid var(--primary); border-color: transparent; }
+
+        /* --- Dashboard --- */
+        header { text-align: center; margin-bottom: 30px; }
+        h1 { color: var(--primary-dark); font-size: 1.5rem; margin-bottom: 5px; }
+        
+        /* Main Timer */
+        .timer-card {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 30px;
+            border-radius: var(--radius);
+            text-align: center;
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.3);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .timer-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .time-unit .value { font-size: 2.5rem; font-weight: bold; display: block; line-height: 1; }
+        .time-unit .label { font-size: 0.8rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .stat-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+        .stat-icon { font-size: 1.5rem; margin-bottom: 5px; }
+        .stat-value { font-size: 1.25rem; font-weight: bold; color: var(--text-main); }
+        .stat-label { font-size: 0.85rem; color: var(--text-muted); }
+
+        /* Section Headers */
+        h2 { font-size: 1.2rem; margin: 25px 0 15px 0; color: var(--primary-dark); display: flex; align-items: center; gap: 8px; }
+
+        /* Health Timeline */
+        .health-list { list-style: none; }
+        .health-item {
+            background: var(--card-bg);
+            margin-bottom: 10px;
+            padding: 15px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            opacity: 0.5; /* Default locked state */
+            filter: grayscale(100%);
+            transition: all 0.3s ease;
+        }
+        .health-item.unlocked { opacity: 1; filter: grayscale(0%); border-left: 4px solid var(--primary); }
+        .health-progress { flex-grow: 1; }
+        .health-title { font-weight: 600; font-size: 0.95rem; }
+        .health-desc { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* Achievements */
+        .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+        }
+        .badge {
+            background: #e5e7eb;
+            border-radius: 50%;
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 5px;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            position: relative;
+            cursor: help;
+            transition: transform 0.2s;
+        }
+        .badge i { font-size: 1.5rem; margin-bottom: 2px; display: block; }
+        .badge.unlocked {
+            background: #fffbeb;
+            border: 2px solid var(--gold);
+            color: #92400e;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Motivation Quote */
+        .quote-box {
+            background-color: #e0f2fe;
+            color: #0369a1;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-style: italic;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div id="setup-screen" class="hidden">
+            <div class="setup-card">
+                <h2 style="justify-content: center;">Vítej u Nového Dechu</h2>
+                <p style="margin-bottom: 20px; color: var(--text-muted);">Gratulujeme k rozhodnutí přestat. Pojďme si nastavit tvůj plán.</p>
+                
+                <div class="input-group">
+                    <label>Kdy jsi vykouřil(a) poslední cigaretu?</label>
+                    <input type="datetime-local" id="startDateInput">
+                </div>
+                
+                <div class="input-group">
+                    <label>Počet cigaret denně (průměr)</label>
+                    <input type="number" id="cigsPerDay" placeholder="např. 15">
+                </div>
+
+                <div class="input-group">
+                    <label>Cena za krabičku (Kč)</label>
+                    <input type="number" id="costPerPack" placeholder="např. 140">
+                </div>
+
+                <div class="input-group">
+                    <label>Počet cigaret v krabičce</label>
+                    <input type="number" id="cigsInPack" value="20">
+                </div>
+
+                <button class="btn btn-primary" onclick="app.initProfile()">Začít mou cestu</button>
+            </div>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <header>
+                <h1>Nový Dech</h1>
+                <div id="motivational-quote" class="quote-box">
+                    "Každá hodina se počítá. Jsi silnější, než si myslíš."
+                </div>
+            </header>
+
+            <div class="timer-card">
+                <div style="font-size: 0.9rem; margin-bottom: 10px; opacity: 0.8;">Jsi svobodný/á už</div>
+                <div class="timer-display">
+                    <div class="time-unit"><span class="value" id="days">0</span><span class="label">Dní</span></div>
+                    <div class="time-unit"><span class="value" id="hours">00</span><span class="label">Hod</span></div>
+                    <div class="time-unit"><span class="value" id="minutes">00</span><span class="label">Min</span></div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-value" id="money-saved">0 Kč</div>
+                    <div class="stat-label">Ušetřeno</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🚬</div>
+                    <div class="stat-value" id="cigs-not-smoked">0</div>
+                    <div class="stat-label">Nevykouřeno</div>
+                </div>
+            </div>
+
+            <h2>🏆 Tvé úspěchy</h2>
+            <div class="achievements-grid" id="achievements-list">
+                </div>
+
+            <h2>❤️ Tvé tělo se uzdravuje</h2>
+            <div class="health-list" id="health-timeline">
+                </div>
+
+            <button class="btn btn-danger" onclick="app.showRelapseModal()">Uklouzl(a) jsem (Resetovat)</button>
+        </div>
+    </div>
+
+    <div id="relapse-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>To je v pořádku</h3>
+            <p style="margin: 15px 0; color: var(--text-muted);">Cesta k úspěchu není přímka. Důležité je, že to nevzdáváš. Nezačínáš od nuly, začínáš se zkušenostmi.</p>
+            <button class="btn btn-primary" onclick="app.confirmRelapse()" style="margin-bottom: 10px;">Zkusit to znovu teď hned</button>
+            <button class="btn" style="background: #f3f4f6;" onclick="app.hideRelapseModal()">Zrušit (Byl to omyl)</button>
+        </div>
+    </div>
+    
+    <div id="achievement-modal" class="modal hidden">
+        <div class="modal-content">
+            <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
+            <h3>Nový úspěch!</h3>
+            <p id="modal-achievement-name" style="font-weight: bold; color: var(--primary); margin-top: 5px;"></p>
+            <p id="modal-achievement-desc" style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;"></p>
+            <button class="btn btn-primary" onclick="document.getElementById('achievement-modal').classList.add('hidden')">Skvělé!</button>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * Aplikace Nový Dech - Logika
+         */
+        const app = {
+            data: {
+                startDate: null,
+                cigsPerDay: 0,
+                costPerPack: 0,
+                packSize: 20,
+                achievementsUnlocked: []
+            },
+            
+            // Definice úspěchů (Gamifikace)
+            achievements: [
+                { id: 'time_24h', title: 'První den', desc: '24 hodin bez cigarety', thresholdHours: 24, icon: '🌅' },
+                { id: 'time_3d', title: 'Víkendovkář', desc: '3 dny čistý/á', thresholdHours: 72, icon: '🧗' },
+                { id: 'time_1w', title: 'Týden hrdosti', desc: '1 týden svobody', thresholdHours: 168, icon: '🗓️' },
+                { id: 'time_1m', title: 'Nový zvyk', desc: '1 měsíc bez kouření', thresholdHours: 720, icon: '👑' },
+                { id: 'money_500', title: 'Spořivý', desc: 'Ušetřeno 500 Kč', thresholdMoney: 500, icon: '🐷' },
+                { id: 'cigs_100', title: 'Čisté plíce', desc: '100 nevykouřených cigaret', thresholdCigs: 100, icon: '🌬️' }
+            ],
+
+            // Definice zdravotních milníků
+            healthMilestones: [
+                { minutes: 20, title: 'Krevní tlak', desc: 'Tep a tlak se vracejí k normálu.' },
+                { minutes: 480, title: 'Kyslík v krvi', desc: 'Hladina oxidu uhelnatého klesla na polovinu.' }, // 8h
+                { minutes: 1440, title: 'Srdce bez rizika', desc: 'Hladina CO je v normálu. Riziko infarktu klesá.' }, // 24h
+                { minutes: 2880, title: 'Chuť a čich', desc: 'Nervová zakončení regenerují. Jídlo chutná lépe.' }, // 48h
+                { minutes: 4320, title: 'Dýchání', desc: 'Průdušky se uvolňují, energie roste.' } // 72h
+            ],
+
+            motivationalQuotes: [
+                "Nejlepší čas zasadit strom byl před 20 lety. Druhý nejlepší čas je teď.",
+                "Překážky jsou to, co vidíš, když přestaneš hledět na cíl.",
+                "Bolest je dočasná. Hrdost je věčná.",
+                "Tvé tělo ti děkuje každou minutou.",
+                "Není to o tom, co ztrácíš, ale co získáváš."
+            ],
+
+            init: function() {
+                this.loadData();
+                
+                if (!this.data.startDate) {
+                    document.getElementById('setup-screen').classList.remove('hidden');
+                    // Nastavit defaultní čas na "teď" pro input
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                    document.getElementById('startDateInput').value = now.toISOString().slice(0,16);
+                } else {
+                    this.startDashboard();
+                }
+            },
+
+            initProfile: function() {
+                const startInput = document.getElementById('startDateInput').value;
+                const cpd = document.getElementById('cigsPerDay').value;
+                const cost = document.getElementById('costPerPack').value;
+                const pack = document.getElementById('cigsInPack').value;
+
+                if (!startInput || !cpd || !cost) {
+                    alert("Prosím vyplň všechna pole.");
+                    return;
+                }
+
+                this.data.startDate = new Date(startInput).getTime();
+                this.data.cigsPerDay = parseInt(cpd);
+                this.data.costPerPack = parseInt(cost);
+                this.data.packSize = parseInt(pack);
+                
+                this.saveData();
+                document.getElementById('setup-screen').classList.add('hidden');
+                this.startDashboard();
+            },
+
+            startDashboard: function() {
+                document.getElementById('dashboard').classList.remove('hidden');
+                this.renderAchievementsLayout();
+                this.renderHealthLayout();
+                
+                // Random citát při startu
+                const quote = this.motivationalQuotes[Math.floor(Math.random() * this.motivationalQuotes.length)];
+                document.getElementById('motivational-quote').innerText = `"${quote}"`;
+
+                // Update loop
+                this.update(); 
+                setInterval(() => this.update(), 1000);
+            },
+
+            update: function() {
+                const now = Date.now();
+                const diff = now - this.data.startDate;
+
+                if (diff < 0) return; // Datum v budoucnosti
+
+                // Čas
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const totalHours = Math.floor(diff / (1000 * 60 * 60));
+                const totalMinutes = Math.floor(diff / (1000 * 60));
+
+                document.getElementById('days').innerText = days;
+                document.getElementById('hours').innerText = hours.toString().padStart(2, '0');
+                document.getElementById('minutes').innerText = minutes.toString().padStart(2, '0');
+
+                // Statistiky
+                const cigsAvoided = (this.data.cigsPerDay / 24 / 60 * totalMinutes).toFixed(1);
+                const moneySaved = (cigsAvoided * (this.data.costPerPack / this.data.packSize)).toFixed(0);
+
+                document.getElementById('cigs-not-smoked').innerText = Math.floor(cigsAvoided);
+                document.getElementById('money-saved').innerText = `${moneySaved} Kč`;
+
+                // Kontrola Achievementů
+                this.checkAchievements(totalHours, parseInt(moneySaved), parseInt(cigsAvoided));
+                
+                // Kontrola Zdraví
+                this.updateHealthTimeline(totalMinutes);
+            },
+
+            checkAchievements: function(hours, money, cigs) {
+                let newUnlock = false;
+                
+                this.achievements.forEach(ach => {
+                    if (this.data.achievementsUnlocked.includes(ach.id)) return;
+
+                    let unlocked = false;
+                    if (ach.thresholdHours && hours >= ach.thresholdHours) unlocked = true;
+                    if (ach.thresholdMoney && money >= ach.thresholdMoney) unlocked = true;
+                    if (ach.thresholdCigs && cigs >= ach.thresholdCigs) unlocked = true;
+
+                    if (unlocked) {
+                        this.data.achievementsUnlocked.push(ach.id);
+                        this.showAchievementModal(ach);
+                        this.renderAchievementsLayout(); // Překreslit pro vizuální efekt
+                        newUnlock = true;
+                    }
+                });
+
+                if (newUnlock) this.saveData();
+            },
+
+            renderAchievementsLayout: function() {
+                const container = document.getElementById('achievements-list');
+                container.innerHTML = '';
+                
+                this.achievements.forEach(ach => {
+                    const isUnlocked = this.data.achievementsUnlocked.includes(ach.id);
+                    const el = document.createElement('div');
+                    el.className = `badge ${isUnlocked ? 'unlocked' : ''}`;
+                    el.title = ach.desc;
+                    el.innerHTML = `
+                        <i>${isUnlocked ? ach.icon : '🔒'}</i>
+                        <span>${ach.title}</span>
+                    `;
+                    container.appendChild(el);
+                });
+            },
+
+            renderHealthLayout: function() {
+                const container = document.getElementById('health-timeline');
+                container.innerHTML = '';
+                this.healthMilestones.forEach((milestone, index) => {
+                    const el = document.createElement('li');
+                    el.className = 'health-item';
+                    el.id = `health-${index}`;
+                    el.innerHTML = `
+                        <div class="health-progress">
+                            <div class="health-title">${milestone.title}</div>
+                            <div class="health-desc">${milestone.desc}</div>
+                        </div>
+                        <div>${index === 0 ? '❤️' : '⚕️'}</div>
+                    `;
+                    container.appendChild(el);
+                });
+            },
+
+            updateHealthTimeline: function(totalMinutes) {
+                this.healthMilestones.forEach((milestone, index) => {
+                    const el = document.getElementById(`health-${index}`);
+                    if (totalMinutes >= milestone.minutes) {
+                        if (!el.classList.contains('unlocked')) {
+                            el.classList.add('unlocked');
+                        }
+                    }
+                });
+            },
+
+            showAchievementModal: function(ach) {
+                document.getElementById('modal-achievement-name').innerText = ach.title;
+                document.getElementById('modal-achievement-desc').innerText = ach.desc;
+                document.getElementById('achievement-modal').classList.remove('hidden');
+            },
+
+            showRelapseModal: function() {
+                document.getElementById('relapse-modal').classList.remove('hidden');
+            },
+
+            hideRelapseModal: function() {
+                document.getElementById('relapse-modal').classList.add('hidden');
+            },
+
+            confirmRelapse: function() {
+                // Resetovat datum na teď, ale nechat nastavení profilu
+                this.data.startDate = Date.now();
+                this.saveData();
+                this.hideRelapseModal();
+                this.update();
+                // Volitelně: Vyčistit achievementy? 
+                // Z hlediska pozitivní motivace je lepší nechat staré achievementy odemčené 
+                // jako připomínku, že to dokážou, nebo je resetovat. 
+                // Zde volíme "měkký reset" (statistika běží od nuly, achievementy zůstávají jako "historické trofeje", nebo je lze smazat pro hardcore mód).
+                // Pro tento úkol necháváme achievementy (podpora i při neúspěchu).
+                alert("Nový začátek. Tentokrát to vyjde!");
+            },
+
+            saveData: function() {
+                localStorage.setItem('novyDechData', JSON.stringify(this.data));
+            },
+
+            loadData: function() {
+                const saved = localStorage.getItem('novyDechData');
+                if (saved) {
+                    this.data = JSON.parse(saved);
+                }
+            }
+        };
+
+        // Spustit aplikaci
+        app.init();
+    </script>
+</body>
+</html>
